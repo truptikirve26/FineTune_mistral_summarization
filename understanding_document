@@ -1,0 +1,50 @@
+Step By Step Process 
+
+1. Load Dataset
+✅ You load the SAMSum dataset using datasets. (https://huggingface.co/datasets/knkarthick/samsum)
+
+✅ Preprocess to generate input-output pairs (dialogue → summary) in instruction format.
+
+2. Load Tokenizer
+✅ Load tokenizer from the base Mistral model.
+
+✅ Set pad_token = eos_token to avoid issues during generation.
+
+3. Quantize Base Model (4-bit)
+✅ Use bitsandbytes with nf4 and bfloat16 precision.
+
+✅ Load Mistral in 4-bit quantized mode to reduce memory usage.
+
+4. Prepare Model for QLoRA
+✅ Use prepare_model_for_kbit_training() to:
+
+Enable input gradient computation.
+
+Cast layer norms to FP32.
+
+Add input gradients.
+
+5. Apply QLoRA Adapter
+✅ Use get_peft_model() with your LoraConfig:
+
+Inject LoRA adapters (low-rank matrices) into attention layers.
+
+Train only these adapters (not the full model).
+
+6. Tokenize Dataset
+✅ Map the preprocessed data to token IDs with labels for causal LM.
+
+7. Train with 🤗 Trainer
+✅ Configure TrainingArguments for supervised fine-tuning (SFT).
+
+✅ Use Trainer from Hugging Face Transformers.
+
+✅ Train using the full tokenized dataset.
+
+8. Evaluate
+✅ Evaluate on validation set using loss/metrics from Trainer.
+
+9. Save Fine-Tuned Model
+✅ Save only the LoRA adapters (unless you merged them before saving).
+
+Can be loaded later by applying on the base Mistral model.
